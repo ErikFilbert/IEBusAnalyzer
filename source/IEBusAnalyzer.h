@@ -29,6 +29,7 @@ protected: //vars
 
 	//Serial analysis vars:
 	U32 mSampleRateHz;
+	U32 samplesUs;
 	U32 mStartOfStopBitOffset;
 	U32 mEndOfStopBitOffset;
 	// tolerance for instability of readings

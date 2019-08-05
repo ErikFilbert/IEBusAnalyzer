@@ -4,7 +4,7 @@
 
 IEBusAnalyzerSettings::IEBusAnalyzerSettings()
 :	mInputChannel( UNDEFINED_CHANNEL ),
-	mStartBitWidth( 1700 ),
+	mStartBitWidth( 171 ),
 	mBitWidth( 40 )
 {
 	mInputChannelInterface.reset( new AnalyzerSettingInterfaceChannel() );
@@ -18,7 +18,7 @@ IEBusAnalyzerSettings::IEBusAnalyzerSettings()
 	mStartBitWidthInterface->SetInteger( mStartBitWidth );
 
 	mBitWidthInterface.reset( new AnalyzerSettingInterfaceInteger() );
-	mBitWidthInterface->SetTitleAndTooltip( "Start Bit Width (uS)",  "Specify the bit width in uS" );
+	mBitWidthInterface->SetTitleAndTooltip( "Bit Width (uS)",  "Specify the bit width in uS" );
 	mBitWidthInterface->SetMax( 6000000 );
 	mBitWidthInterface->SetMin( 1 );
 	mBitWidthInterface->SetInteger( mBitWidth );
@@ -79,7 +79,7 @@ const char* IEBusAnalyzerSettings::SaveSettings()
 
 	text_archive << mInputChannel;
 	text_archive << mStartBitWidth;
-	text_archive >> mBitWidth;
+	text_archive << mBitWidth;
 
 	return SetReturnString( text_archive.GetString() );
 }

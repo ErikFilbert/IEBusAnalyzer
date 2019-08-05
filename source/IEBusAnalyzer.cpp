@@ -1,6 +1,7 @@
 #include "IEBusAnalyzer.h"
 #include "IEBusAnalyzerSettings.h"
 #include <AnalyzerChannelData.h>
+#include <stdio.h>
 
 #define CONTROL 100
 #define LENGTH  101
@@ -13,8 +14,6 @@ IEBusAnalyzer::IEBusAnalyzer()
 	mSimulationInitilized( false )
 {
 	SetAnalyzerSettings( mSettings.get() );
-	tolerance_start = mSettings->mStartBitWidth * .05;
-	tolerance_bit = mSettings->mBitWidth * .05;
 }
 
 IEBusAnalyzer::~IEBusAnalyzer()
@@ -62,12 +61,14 @@ void IEBusAnalyzer::getAddress(bool master)
 	start_sample_number_start = mSerial->GetSampleNumber();
 	start_bit_number_start = start_sample_number_start;
 
+	printf("Samples ms: %lu \n", samplesUs);
 	int i = 0;
 	while(i < 12){
 		mResults->AddMarker( start_bit_number_start, AnalyzerResults::Dot, mSettings->mInputChannel );
 		mSerial->AdvanceToNextEdge();
 		start_sample_number_finish = mSerial->GetSampleNumber();
-		measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		measure_width = (start_sample_number_finish - start_bit_number_start) / samplesUs;
 		if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 			data |= mask;
@@ -88,7 +89,8 @@ void IEBusAnalyzer::getAddress(bool master)
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 			mSerial->AdvanceToNextEdge();
 			start_sample_number_finish = mSerial->GetSampleNumber();
-			measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+			//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+			measure_width = (start_sample_number_finish - start_bit_number_start)  / samplesUs;
 			if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 				mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 				flags = 1;
@@ -107,7 +109,8 @@ void IEBusAnalyzer::getAddress(bool master)
 		mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 		mSerial->AdvanceToNextEdge();
 		start_sample_number_finish = mSerial->GetSampleNumber();
-		measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		measure_width = (start_sample_number_finish - start_bit_number_start)  / samplesUs;
 		if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 			flags = 1 << 1;
@@ -137,7 +140,8 @@ int IEBusAnalyzer::getData(U8 dataType)
 		mResults->AddMarker( start_bit_number_start, AnalyzerResults::Dot, mSettings->mInputChannel );
 		mSerial->AdvanceToNextEdge();
 		start_sample_number_finish = mSerial->GetSampleNumber();
-		measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+		measure_width = (start_sample_number_finish - start_bit_number_start) / samplesUs;
 		if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 			data |= mask;
@@ -158,7 +162,8 @@ int IEBusAnalyzer::getData(U8 dataType)
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 			mSerial->AdvanceToNextEdge();
 			start_sample_number_finish = mSerial->GetSampleNumber();
-			measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+			//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+			measure_width = (start_sample_number_finish - start_bit_number_start)  / samplesUs;
 			if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 				mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 				//flags = 1;
@@ -176,7 +181,8 @@ int IEBusAnalyzer::getData(U8 dataType)
 	mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 	mSerial->AdvanceToNextEdge();
 	start_sample_number_finish = mSerial->GetSampleNumber();
-	measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+	//measure_width = (start_sample_number_finish - start_bit_number_start) * 2 * .001;
+	measure_width = (start_sample_number_finish - start_bit_number_start) / samplesUs;
 	if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 		mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 		flags = flags | 2;
@@ -192,11 +198,22 @@ int IEBusAnalyzer::getData(U8 dataType)
 
 void IEBusAnalyzer::WorkerThread()
 {
+	
 	mResults.reset( new IEBusAnalyzerResults( this, mSettings.get() ) );
 	SetAnalyzerResults( mResults.get() );
 	mResults->AddChannelBubblesWillAppearOn( mSettings->mInputChannel );
 
+	tolerance_start = mSettings->mStartBitWidth * .05;
+	tolerance_bit = mSettings->mBitWidth * .05;
+
+	printf("tolrance: %f, startbitwidth: %lu\n", tolerance_start, mSettings->mStartBitWidth);
+
+
+
+
 	mSampleRateHz = GetSampleRate();
+	samplesUs = mSampleRateHz / 1000000;
+	printf("Sample Rate: %lu \n", samplesUs);
 
 	mSerial = GetAnalyzerChannelData( mSettings->mInputChannel );
 	
@@ -221,19 +238,24 @@ void IEBusAnalyzer::WorkerThread()
 			mSerial->AdvanceToNextEdge();
 			start_sample_number_finish = mSerial->GetSampleNumber();
 
+			printf("samplesUs : %lu, finish: %llu, start: %llu \n", samplesUs, start_sample_number_finish, start_sample_number_start);
 			// measure the sample and normilize the units
-			measure_width = (start_sample_number_finish - start_sample_number_start) * 2;
-			if (measure_width > 100000)
+			measure_width = (start_sample_number_finish - start_sample_number_start) / samplesUs;
+			/*if (measure_width > 100000) 
 				measure_width *= .01;
 			else
-				measure_width *= .001;
+				measure_width *= .001;*/
 
 			// check to see if we have a starting bit
 			// if so let us continue to collect data
 			// if not we will reset the starting position
+			
 			if( measure_width > ( mSettings->mStartBitWidth - tolerance_start )
 				&&  measure_width < ( mSettings->mStartBitWidth + tolerance_start ) ) 
 			{
+				printf("Bit Found: %llu\n", measure_width);
+				printf("startbitwidth %i\n", mSettings->mStartBitWidth);
+				printf("tolerancestart %f\n", tolerance_start);
 				data = 0xFFFF;
 				found_start = true;
 				mResults->AddMarker( start_sample_number_start, AnalyzerResults::UpArrow, mSettings->mInputChannel );
@@ -252,7 +274,8 @@ void IEBusAnalyzer::WorkerThread()
 		mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mInputChannel );
 		mSerial->AdvanceToNextEdge();
 		start_sample_number_finish = mSerial->GetSampleNumber();
-		measure_width = (start_sample_number_finish - start_sample_number_start) * 2 * .001;
+		//measure_width = (start_sample_number_finish - start_sample_number_start) * 2 * .001;
+		measure_width = (start_sample_number_finish - start_sample_number_start) / samplesUs;
 		if( measure_width > ( mSettings->mBitWidth / 2 - tolerance_bit ) && measure_width < ( mSettings->mBitWidth / 2 + tolerance_bit ) ){
 			mResults->AddMarker( mSerial->GetSampleNumber(), AnalyzerResults::One, mSettings->mInputChannel );
 			data = 1;
